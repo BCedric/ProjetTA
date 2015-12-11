@@ -13,7 +13,12 @@ public class Main {
 
 	public static void main(String[] args) {
 		Dictionary dico = new Dictionary();
-		ex16();
+		try {
+			ex20();
+		} catch (CloneNotSupportedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 //		afficherNbMots(dico, "./Dict-Lesk-etendu.xml");
 //		afficherNbMots(dico, "./Dict-Lesk.xml");
 //		sensMot("pine", dico);
@@ -139,23 +144,60 @@ public class Main {
 		 return res;
 	}
 	
-	public static ArrayList<String> algoExhaustif(String S, Dictionary Dict){
-		ArrayList<Sense> res = new ArrayList<Sense>();
+	public static void ex20() throws CloneNotSupportedException{
+		
+		ArrayList<Sense> sens =algoExhaustif("mouse pilot computer",getDictionnaires().get(0));
+		System.out.println();
+	}
+	
+	public static ArrayList<Sense> algoExhaustif(String S, Dictionary Dict) throws CloneNotSupportedException{
 		String[] mots = S.split(" ");
-		String m1;
-		String m2;
-		ArrayList<String[]> tab = new ArrayList<String[]>();
-		for(int i = 0; i<mots.length;++i){
-			m1 = mots[i];
-			for(int j=i+1; j<mots.length; ++j){
-				m2 = mots[2];
-				for(Sense s1 : Dict.getSenses(m1)){
-					for(Sense s2:Dict.getSenses(m2)){
-						tab.add({s1.getSenseID(), s2.getSenseID(), Dict.getSimilarity1(	)})
-					}
-				}
-			}
+		
+		ArrayList<String> listMots = new ArrayList<String>();
+		for(String m:mots) listMots.add(m);
+		ArrayList<Combinaison> combinaisons= calculCombinaisons(listMots, Dict);
+		Combinaison res = combinaisons.get(0);
+		for(Combinaison c:combinaisons) {
+			if(c.getSomme()>res.getSomme()) res =c;
 		}
+		return res.getSens();
+	}
+	
+	public static ArrayList<Combinaison> calculCombinaisons(ArrayList<String> mots, Dictionary dico) throws CloneNotSupportedException{
+		if(mots.size() >0){
+			String mot = mots.get(0);
+			mots.remove(0);
+			ArrayList<Combinaison> res = calculCombinaisons(mots,dico);
+			if(res.size()>0){
+				ArrayList<Combinaison> resClone = cloneListCombinaison(res);
+				ArrayList<Combinaison> newRes = new ArrayList<Combinaison>();
+				System.out.println(dico.getSenses(mot).size());
+				for(Sense s: dico.getSenses(mot)){
+					for(Combinaison  combinaison: res){
+						combinaison.add(s);
+					}
+					newRes.addAll(res);
+					res = cloneListCombinaison(resClone);
+				}
+				return newRes;
+			} else {
+				for(Sense s:dico.getSenses(mot)){
+					ArrayList<Sense> nouvCombin = new ArrayList<Sense>();
+					nouvCombin.add(s);
+					res.add(new Combinaison(nouvCombin, dico));
+				}
+				return res;
+			}
+			
+		} else{
+			return new ArrayList<Combinaison>();
+		}
+	}
+	
+	public static ArrayList<Combinaison> cloneListCombinaison(ArrayList<Combinaison> list) throws CloneNotSupportedException{
+		ArrayList<Combinaison> res = new ArrayList<Combinaison>();
+		for(Combinaison c:list)	res.add((Combinaison) c.clone());
+		return res;
 	}
 
 }
