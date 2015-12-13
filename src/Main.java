@@ -55,7 +55,7 @@ public class Main {
 	
 	public static void afficherSimilarite(String mot1, String mot2, Dictionary dico, String dictionnaire){
 		dico.loadDictionary(dictionnaire);
-		System.out.println("Similarité entre "+mot1+" et "+mot2+" sur le dictionnaire "+dictionnaire+" : "+dico.getSimilarity1(mot1, mot2));
+		System.out.println("SimilaritÃ© entre "+mot1+" et "+mot2+" sur le dictionnaire "+dictionnaire+" : "+dico.getSimilarity1(mot1, mot2));
 	}
 	
 	public static void ex13(){
@@ -94,9 +94,9 @@ public class Main {
 			++i;
 		}
 		
-		System.out.println("Corrélation entre humain et lesk :"+Stats.getPearsonCorrelation(humain,lesk));
-		System.out.println("Corrélation entre humain et lesk étendu :"+Stats.getPearsonCorrelation(humain,leskEtendu));
-		System.out.println("Corrélation entre humain et lesk corpus :"+Stats.getPearsonCorrelation(humain,leskCorpus));
+		System.out.println("CorrÃ©lation entre humain et lesk :"+Stats.getPearsonCorrelation(humain,lesk));
+		System.out.println("CorrÃ©lation entre humain et lesk Ã©tendu :"+Stats.getPearsonCorrelation(humain,leskEtendu));
+		System.out.println("CorrÃ©lation entre humain et lesk corpus :"+Stats.getPearsonCorrelation(humain,leskCorpus));
 	}
 	
 	
@@ -146,11 +146,16 @@ public class Main {
 	
 	public static void ex20() throws CloneNotSupportedException{
 		
-		ArrayList<Sense> sens =algoExhaustif("mouse pilot computer",getDictionnaires().get(0));
-		System.out.println();
+		ArrayList<Sense> sens =algoExhaustif("doctor be hospital last day night",getDictionnaires().get(2));
+		for(Sense s:sens){
+			System.out.println(s.getIDS());
+		}
+		
+		
 	}
 	
 	public static ArrayList<Sense> algoExhaustif(String S, Dictionary Dict) throws CloneNotSupportedException{
+		System.out.println("DÃ©but algo exhaustif");
 		String[] mots = S.split(" ");
 		
 		ArrayList<String> listMots = new ArrayList<String>();
@@ -160,6 +165,7 @@ public class Main {
 		for(Combinaison c:combinaisons) {
 			if(c.getSomme()>res.getSomme()) res =c;
 		}
+				
 		return res.getSens();
 	}
 	
@@ -181,6 +187,7 @@ public class Main {
 				}
 				return newRes;
 			} else {
+				System.out.println(dico.getSenses(mot).size());
 				for(Sense s:dico.getSenses(mot)){
 					ArrayList<Sense> nouvCombin = new ArrayList<Sense>();
 					nouvCombin.add(s);
