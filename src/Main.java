@@ -2,23 +2,30 @@ import java.awt.List;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Random;
+import java.util.TreeSet;
 
 import com.opencsv.CSVReader;
 
+import wic.wsd.ProblemConfiguration;
 import wic.wsd.Stats;
+import wic.wsd.corpus.Corpus;
+import wic.wsd.corpus.Text;
 import wic.wsd.dictionary.*;
 
 public class Main {
 
 	public static void main(String[] args) {
 		Dictionary dico = new Dictionary();
-		try {
-			ex20();
-		} catch (CloneNotSupportedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		try {
+//			ex20();
+//		} catch (CloneNotSupportedException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 //		afficherNbMots(dico, "./Dict-Lesk-etendu.xml");
 //		afficherNbMots(dico, "./Dict-Lesk.xml");
 //		sensMot("pine", dico);
@@ -28,7 +35,15 @@ public class Main {
 //		afficherSimilarite("pine", "cone", dico, "dict_all_stopwords_stemming_semcor_dso_wordnetglosstag_150.xml");
 		
 		
+		long startTime = System.currentTimeMillis();
 		
+		Corpus c =new Corpus();
+		Dictionary d = new Dictionary();
+		d.loadDictionary("Dict-Lesk.xml");
+		c.loadCorpus(d, "TP-WSD-WIK/evaluation/test/eng-coarse-all-words.xml");
+		ex26(1000, 100 ,4, c.getTexts().get(0), d);
+		long endTime = System.currentTimeMillis();
+		System.out.println("Temps d'exécution :"+ (endTime-startTime));
 		
 		
 	}
@@ -206,5 +221,124 @@ public class Main {
 		for(Combinaison c:list)	res.add((Combinaison) c.clone());
 		return res;
 	}
+	
+	public static void ex23(Corpus c, int n, Dictionary d) throws FileNotFoundException{
+		/* Argument de ligne de commande:
+		 * Main.class [dictionnaire] [corpus]
+		 * Par exemple: java org.wic.wsd.Main dictionnaire.xml eng-coarse-all-words.xml sortie.ans*/
+		
+        
+		for(Text t : c.getTexts()){// On rÃ©alise les mÃªmes opÃ©rations sur chaque texte du corpus
+			System.out.println("Texte "+t.getLabel());
+			/*Configuration initiale: Selection de sens alÃ©atoires*/
+			ProblemConfiguration configuration = new ProblemConfiguration(t.getLength(), true, t);
+			
+			/*Faire quelque chose avec configuration*/
+			
+			/*Par exemple, pour calculer son score*/
+			configuration.computeScore(t, d);
+			double score = configuration.getScore();
+			System.out.println("\tScore initial=         "+score);
+			ProblemConfiguration configClone;
+			
+				for(int i=0;i<n;++i){
+					configClone = configuration.getClone();
+					configClone.makeChange(t);
+					configClone.computeScore(t, d);
+					if(configClone.getScore() > configuration.getScore()){
+						configuration = configClone;
+					}
+				}
+			
+			
+			
+			/*Score post changement*/
+			System.out.println("\tScore aprÃ¨s changement="+configuration.getScore());
+	        //configuration.writeResult(t, answerWriter);
+		}
+	}
+	
+	public static void ex26(int n, int m, int s, Text t, Dictionary d){
+		int i, j, s1 = s;
+		double[][] tab = new double[t.getLength()][];
+		ArrayList<ProblemConfiguration> configurations = new ArrayList<ProblemConfiguration>();
+		ProblemConfiguration config;
+		
+		//initialisation des différentes configurations
+		for(i=0; i<n;++i){
+			config = new ProblemConfiguration(t.getLength(), true, t);
+			config.computeScore(t, d);
+			configurations.add(config);
+		}
+		Collections.sort(configurations);
+		for(ProblemConfiguration configuration : configurations){
+			System.out.println(configuration.getScore());
+		}
+		
+		
+		//initialisation du tableau de probabilités
+		for(i=0; i<t.getLength();++i){
+			tab[i] = new double[d.getSenses(t.getWord(i).getLabel()).size()];
+			for(j=0; j<tab[i].length; ++j) tab[i][j]=0;
+			}
+		
+		
+		config = configurations.get(configurations.size()-1);
+		System.out.println("Score initiale : "+config.getScore());
+		while(s1!=0){
+			tab = calculProba(configurations, m, tab);
+			configurations = nouvellePop(configurations, tab, t,d);
+			Collections.sort(configurations);
+			
+			
+			if(configurations.get(configurations.size()-1).compareTo(config)==0) s1--;
+			else s1 =s;
+			config = configurations.get(configurations.size()-1).getClone();
+			System.out.println("Nouveau score : "+config.getScore());
+		}
+		System.out.println("Score final : "+config.getScore());
+	}
+	
+	public static ArrayList<ProblemConfiguration> nouvellePop(ArrayList<ProblemConfiguration> configurations,  double[][] prob, Text t, Dictionary d){
+		int j;
+		double rand;
+		for(ProblemConfiguration configuration : configurations){
+			for(int i=0;i<prob.length; ++i){
+				rand = Math.random();
+				j=0;
+				while(rand>prob[i][j]){
+					++j;
+				}
+				
+				configuration.setSelectedSenseAt(i, j);
+				//System.out.println(configuration.getSelectedSenseAt(i));
+			}
+			configuration.computeScore(t, d);
+		}
+		
+		return configurations;
+	}
+	
+	public static double[][] calculProba(ArrayList<ProblemConfiguration> configurations, int m, double[][] tab){
+		int j, i=0;
+		for(ProblemConfiguration configuration : configurations){
+			if(i>=configurations.size()-m){
+				for(j=0;j<configuration.getLength();++j){
+					tab[j][configuration.getSelectedSenseAt(j)]++;
+				}
+			}
+			++i;
+		}
+		for(i=0; i<tab.length; ++i){
+			for(j=0;j<tab[i].length;++j){
+				if(j==0) tab[i][j] = tab[i][j]/m;
+				else tab[i][j] = (tab[i][j-1] + tab[i][j]/m);
+				
+			}
+		}
+		
+		return tab;
+	}
+	
 
 }
