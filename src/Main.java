@@ -41,25 +41,33 @@ public class Main {
 		Dictionary d = new Dictionary();
 		d.loadDictionary("Dict-Lesk.xml");
 		c.loadCorpus(d, "TP-WSD-WIK/evaluation/test/eng-coarse-all-words.xml");
-		ex26(1000, 100 ,4, c.getTexts().get(0), d);
+		
+		startTime = System.currentTimeMillis();
+		ex26(100, 50 ,4, c.getTexts().get(0), d);
 		long endTime = System.currentTimeMillis();
-		System.out.println("Temps d'exécution :"+ (endTime-startTime));
-		
+		System.out.println("n = 1000, m = 100, s= 4, Temps d'exécution :"+ (endTime-startTime)/1000);
+
 		
 	}
 	
-	public static void afficherNbMots(Dictionary d, String dico){
-		d.loadDictionary(dico);
-		System.out.println("Nombre de mot du dictionnaire "+dico+" : "+d.size());
+	//-----------------------------------------------------Exercice 8-----------------------------------------------------------
+	
+	public static void ex8(){
+
+		for(Dictionary dico:getDictionnaires())System.out.println("Nombre de mot du dictionnaire "+dico+" : "+dico.size());
 	}
 	
+	//----------------------------------------------------------------------------------------------------------------
+	
+	//-----------------------------------------------------Exercice 9 et 10-----------------------------------------------------------
+	//Rentrer s = cone ou s = pine pour avoir le nombre de sens de chacun des mots 
 	public static void sensMot(String s, Dictionary dico){
 		dico.loadDictionary("./Dict-Lesk-etendu.xml");
 		afficherSens(dico, s);
 		dico.loadDictionary("./Dict-Lesk.xml");
 		afficherSens(dico, s);
-		System.out.println();
 	}
+	
 	
 	public static void afficherSens(Dictionary dico, String mot){
 		System.out.println("nombre de sens pour \""+mot+"\" : "+dico.getSenses(mot).size());
@@ -68,17 +76,27 @@ public class Main {
 		}
 	}
 	
+	//----------------------------------------------------------------------------------------------------------------
+	
+	//-----------------------------------------------------Exercice 11-----------------------------------------------------------
+	// 
 	public static void afficherSimilarite(String mot1, String mot2, Dictionary dico, String dictionnaire){
 		dico.loadDictionary(dictionnaire);
 		System.out.println("Similarité entre "+mot1+" et "+mot2+" sur le dictionnaire "+dictionnaire+" : "+dico.getSimilarity1(mot1, mot2));
 	}
+	//----------------------------------------------------------------------------------------------------------------
 	
+	//-----------------------------------------------------Exercice 13-----------------------------------------------------------
 	public static void ex13(){
 		double[] t1={1,4,8,12,2,5,4};
 		double[] t2={4,2,1,6,6,10,4};
 		System.out.println(Stats.getPearsonCorrelation(t1,t2));
 	}
 	
+	//----------------------------------------------------------------------------------------------------------------
+	
+	//-----------------------------------------------------Exercice 14-----------------------------------------------------------
+	// Ici, la librairie CSVReader est utilisée pour parser le fichier csv
 	public static void ex14() throws IOException{
 		CSVReader reader = new CSVReader(new FileReader("paires.csv"));
 		 String [] nextLine = reader.readNext();
@@ -114,7 +132,9 @@ public class Main {
 		System.out.println("Corrélation entre humain et lesk corpus :"+Stats.getPearsonCorrelation(humain,leskCorpus));
 	}
 	
+	//----------------------------------------------------------------------------------------------------------------
 	
+	//-----------------------------------------------------Exercice 15-----------------------------------------------------------
 	public static long nbCombinaisons(String S, Dictionary Dict){
 		long res = 1;
 		int nbSens;
@@ -126,7 +146,9 @@ public class Main {
 		}
 		return res;
 	}
+	//----------------------------------------------------------------------------------------------------------------
 	
+	//-----------------------------------------------------Exercice 16-----------------------------------------------------------
 	public static void ex16(){
 		String[] tabS={"go",
 				"mouse pilot computer",
@@ -140,9 +162,9 @@ public class Main {
 			 }
 			 
 			 ++i;
-		 }
-		 
+		 } 
 	}
+	
 	
 	public static ArrayList<Dictionary> getDictionnaires(){
 		ArrayList<Dictionary> res = new ArrayList<Dictionary>();
@@ -159,16 +181,10 @@ public class Main {
 		 return res;
 	}
 	
-	public static void ex20() throws CloneNotSupportedException{
-		
-		ArrayList<Sense> sens =algoExhaustif("doctor be hospital last day night",getDictionnaires().get(2));
-		for(Sense s:sens){
-			System.out.println(s.getIDS());
-		}
-		
-		
-	}
 	
+
+	
+	//-----------------------------------------------------Exercice 18-----------------------------------------------------------
 	public static ArrayList<Sense> algoExhaustif(String S, Dictionary Dict) throws CloneNotSupportedException{
 		System.out.println("Début algo exhaustif");
 		String[] mots = S.split(" ");
@@ -222,6 +238,22 @@ public class Main {
 		return res;
 	}
 	
+	//----------------------------------------------------------------------------------------------------------------
+	
+	//-----------------------------------------------------Exercice 20-----------------------------------------------------------
+	
+	public static void ex20() throws CloneNotSupportedException{
+		
+		ArrayList<Sense> sens =algoExhaustif("doctor be hospital last day night",getDictionnaires().get(2));
+		for(Sense s:sens){
+			System.out.println(s.getIDS());
+		}		
+	}
+	
+	//----------------------------------------------------------------------------------------------------------------
+	
+	//-----------------------------------------------------Exercice 23-----------------------------------------------------------
+	
 	public static void ex23(Corpus c, int n, Dictionary d) throws FileNotFoundException{
 		/* Argument de ligne de commande:
 		 * Main.class [dictionnaire] [corpus]
@@ -258,6 +290,10 @@ public class Main {
 		}
 	}
 	
+	//----------------------------------------------------------------------------------------------------------------
+	
+	//-----------------------------------------------------Exercice 26-----------------------------------------------------------
+	
 	public static void ex26(int n, int m, int s, Text t, Dictionary d){
 		int i, j, s1 = s;
 		double[][] tab = new double[t.getLength()][];
@@ -271,9 +307,7 @@ public class Main {
 			configurations.add(config);
 		}
 		Collections.sort(configurations);
-		for(ProblemConfiguration configuration : configurations){
-			System.out.println(configuration.getScore());
-		}
+		
 		
 		
 		//initialisation du tableau de probabilités
@@ -342,3 +376,5 @@ public class Main {
 	
 
 }
+
+//----------------------------------------------------------------------------------------------------------------
